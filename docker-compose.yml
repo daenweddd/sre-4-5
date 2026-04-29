@@ -1,0 +1,99 @@
+services:
+  frontend:
+    build: ./frontend
+    container_name: frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - auth-service
+      - product-service
+      - user-service
+      - order-service
+      - chat-service
+
+  auth-service:
+    build: ./auth-service
+    container_name: tech-store-auth
+    ports:
+      - "8001:8000"
+    environment:
+      DB_HOST: postgres
+      DB_NAME: techstore
+      DB_USER: techuser
+      DB_PASSWORD: techpassword
+    depends_on:
+      - postgres
+
+  product-service:
+    build: ./product-service
+    container_name: tech-store-products
+    ports:
+      - "8002:8000"
+
+  user-service:
+    build: ./user-service
+    container_name: tech-store-users
+    ports:
+      - "8004:8000"
+
+  order-service:
+    build: ./order-service
+    container_name: tech-store-orders
+    ports:
+      - "8003:8000"
+    environment:
+      DB_HOST: postgres
+      DB_NAME: techstore
+      DB_USER: techuser
+      DB_PASSWORD: techpassword
+      PRODUCT_SERVICE_URL: http://product-service:8000
+      USER_SERVICE_URL: http://user-service:8000
+      AUTH_SERVICE_URL: http://auth-service:8000
+    depends_on:
+      - postgres
+      - product-service
+      - user-service
+      - auth-service
+
+  chat-service:
+    build: ./chat-service
+    container_name: tech-store-chat
+    ports:
+      - "8005:8000"
+
+  postgres:
+    image: postgres:15
+    container_name: tech-store-postgres
+    environment:
+      POSTGRES_DB: techstore
+      POSTGRES_USER: techuser
+      POSTGRES_PASSWORD: techpassword
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  prometheus:
+    image: prom/prometheus
+    container_name: tech-store-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+    depends_on:
+      - auth-service
+      - product-service
+      - user-service
+      - order-service
+      - chat-service
+
+  grafana:
+    image: grafana/grafana
+    container_name: tech-store-grafana
+    ports:
+      - "3000:3000"
+    depends_on:
+      - prometheus
+
+volumes:
+  postgres_data:

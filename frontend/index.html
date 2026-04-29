@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Online Tech Store</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #eef2f7;
+            margin: 0;
+            padding: 0;
+            color: #111827;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #0f172a, #2563eb);
+            color: white;
+            padding: 35px;
+            text-align: center;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+
+        .section {
+            background: white;
+            padding: 25px;
+            margin-bottom: 22px;
+            border-radius: 14px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.07);
+            border-left: 5px solid #2563eb;
+        }
+
+        input {
+            padding: 12px;
+            margin: 6px;
+            width: 260px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+        }
+
+        button {
+            background: #2563eb;
+            color: white;
+            border: none;
+            padding: 12px 18px;
+            margin: 6px;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #1d4ed8;
+        }
+
+        .output-box {
+            background: #020617;
+            color: #22c55e;
+            padding: 20px;
+            border-radius: 10px;
+            min-height: 200px;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <h1>Online Tech Store</h1>
+</div>
+
+<div class="container">
+
+    <div class="section">
+        <h2>Authentication</h2>
+        <input id="username" placeholder="Username">
+        <input id="email" placeholder="Email">
+        <input id="password" type="password" placeholder="Password">
+        <br>
+        <button onclick="registerCustomer()">Register</button>
+        <button onclick="loginCustomer()">Login</button>
+    </div>
+
+    <div class="section">
+        <h2>Products</h2>
+        <button onclick="getProducts()">View Products</button>
+    </div>
+
+    <div class="section">
+        <h2>Create Order</h2>
+        <input id="productId" type="number" placeholder="Product ID">
+        <input id="quantity" type="number" placeholder="Quantity">
+        <br>
+        <button onclick="createOrder()">Create Order</button>
+        <button onclick="getOrders()">View Orders</button>
+    </div>
+
+    <div class="section">
+        <h2>Chat</h2>
+        <input id="receiver" placeholder="Receiver">
+        <input id="message" placeholder="Message">
+        <br>
+        <button onclick="sendMessage()">Send Message</button>
+        <button onclick="getMessages()">View Messages</button>
+    </div>
+
+    <div class="section">
+        <h2>Users</h2>
+        <button onclick="getUsers()">View Users</button>
+    </div>
+
+    <h2>Output</h2>
+    <pre id="output" class="output-box">Waiting...</pre>
+
+</div>
+
+<script>
+const gatewayUrl = "/api";
+let token = "";
+let loggedInUser = "";
+
+const output = document.getElementById("output");
+
+function show(data) {
+    output.textContent = JSON.stringify(data, null, 2);
+}
+
+function showError(error) {
+    output.textContent = "ERROR:\n" + error;
+}
+
+async function request(url, options = {}) {
+    try {
+        output.textContent = "Loading...";
+        const response = await fetch(url, options);
+        const text = await response.text();
+
+        let data;
+        try {
+            data = JSON.parse(text);
+        } catch {
+            data = text;
+        }
+
+        show({
+            status: response.status,
+            response: data
+        });
+
+        return { status: response.status, response: data };
+
+    } catch (error) {
+        showError(error);
+    }
+}
+
+async function registerCustomer() {
+    const username = document.getElementById("username").value;
+    const email = document.getElementById("email").value;
+    const password = document.getElementById("password").value;
+
+    await request(`${gatewayUrl}/auth/register`, {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({username, email, password})
+    });
+}
+
+async function loginCustomer() {
+    const username = document.getElementById("username").value;
+    const password = document.getElementById("password").value;
+
+    const result = await request(`${gatewayUrl}/auth/login`, {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({username, password})
+    });
+
+    if (result && result.response && result.response.token) {
+        token = result.response.token;
+        loggedInUser = username;
+    }
+}
+
+async function getProducts() {
+    await request(`${gatewayUrl}/products`);
+}
+
+async function createOrder() {
+    const productId = Number(document.getElementById("productId").value);
+    const quantity = Number(document.getElementById("quantity").value);
+
+    await request(`${gatewayUrl}/orders`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify({
+            product_id: productId,
+            quantity: quantity
+        })
+    });
+}
+
+async function getOrders() {
+    await request(`${gatewayUrl}/orders`);
+}
+
+async function getUsers() {
+    await request(`${gatewayUrl}/auth/users`);
+}
+
+async function sendMessage() {
+    const receiver = document.getElementById("receiver").value;
+    const message = document.getElementById("message").value;
+
+    await request(`${gatewayUrl}/chat`, {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({
+            sender: loggedInUser,
+            receiver,
+            message
+        })
+    });
+}
+
+async function getMessages() {
+    await request(`${gatewayUrl}/chat`);
+}
+</script>
+
+</body>
+</html>
