@@ -49,3 +49,26 @@ A failure was introduced in the Order Service by misconfiguring the database. Th
 ## Technologies used
 
 Python (FastAPI), Docker, PostgreSQL, Prometheus, Grafana, Terraform, AWS
+
+## Deployment Guide
+
+The system can be deployed locally using Docker Compose or in the cloud using Terraform.
+
+### Local Deployment
+Run:
+docker compose up --build
+
+### Cloud Deployment (AWS)
+1. Navigate to terraform folder:
+cd terraform
+
+2. Initialize Terraform:
+terraform init
+
+3. Review the plan:
+terraform plan
+
+4. Apply configuration:
+terraform apply
+
+After deployment, use the public IP to access the system.
