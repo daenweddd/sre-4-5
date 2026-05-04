@@ -10,6 +10,7 @@ services:
       - user-service
       - order-service
       - chat-service
+    restart: unless-stopped
 
   auth-service:
     build: ./auth-service
@@ -23,18 +24,36 @@ services:
       DB_PASSWORD: techpassword
     depends_on:
       - postgres
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   product-service:
     build: ./product-service
     container_name: tech-store-products
     ports:
       - "8002:8000"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   user-service:
     build: ./user-service
     container_name: tech-store-users
     ports:
       - "8004:8000"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   order-service:
     build: ./order-service
@@ -54,12 +73,24 @@ services:
       - product-service
       - user-service
       - auth-service
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   chat-service:
     build: ./chat-service
     container_name: tech-store-chat
     ports:
       - "8005:8000"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   postgres:
     image: postgres:15
@@ -72,6 +103,12 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U techuser -d techstore"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   prometheus:
     image: prom/prometheus
@@ -80,12 +117,14 @@ services:
       - "9090:9090"
     volumes:
       - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./prometheus/alert_rules.yml:/etc/prometheus/alert_rules.yml
     depends_on:
       - auth-service
       - product-service
       - user-service
       - order-service
       - chat-service
+    restart: unless-stopped
 
   grafana:
     image: grafana/grafana
@@ -94,6 +133,7 @@ services:
       - "3000:3000"
     depends_on:
       - prometheus
+    restart: unless-stopped
 
 volumes:
   postgres_data:

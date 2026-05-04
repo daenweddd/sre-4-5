@@ -1,23 +1,31 @@
 global:
   scrape_interval: 5s
 
+rule_files:
+  - "alert_rules.yml"
+
 scrape_configs:
   - job_name: "auth-service"
+    metrics_path: /metrics
     static_configs:
       - targets: ["auth-service:8000"]
 
   - job_name: "product-service"
+    metrics_path: /metrics
     static_configs:
       - targets: ["product-service:8000"]
 
   - job_name: "order-service"
+    metrics_path: /metrics
     static_configs:
       - targets: ["order-service:8000"]
 
   - job_name: "user-service"
+    metrics_path: /metrics
     static_configs:
       - targets: ["user-service:8000"]
 
   - job_name: "chat-service"
+    metrics_path: /metrics
     static_configs:
       - targets: ["chat-service:8000"]
