@@ -1,3 +1,3 @@
 region        = "us-east-1"
-instance_type = "t3.micro"
+instance_type = "t2.small"
 key_name      = "tech-store-key"

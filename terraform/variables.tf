@@ -4,8 +4,9 @@ variable "region" {
 }
 
 variable "instance_type" {
-  type    = string
-  default = "t2.micro"
+  description = "EC2 instance type used for vertical scaling"
+  type        = string
+  default     = "t2.small"
 }
 
 variable "key_name" {
